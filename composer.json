@@ -1,0 +1,22 @@
+{
+  "name": "exactquery/searchable",
+  "description": "jQuery plugins for managing search fields and callbacks, as well as searching DOM elements.",
+  "keywords": [
+      "jquery",
+      "search",
+      "callback",
+      "javascript",
+      "dom",
+      "search",
+      "find"
+  ],
+  "homepage": "https://www.github.com/exactquery/searchable",
+  "version": "2.0",
+  "authors": [
+      {
+          "name": "Aaron M Jones",
+          "homepage": "http://www.jonesiscoding.com"
+      }
+  ],
+  "license": "MIT"
+}
