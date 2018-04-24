@@ -24,34 +24,32 @@
       DOWN:   40
     };
 
-    var plugin = this;
+    var sf     = this;
     var $input = $(el);
 
-    plugin.settings = {};
+    sf.settings = {};
 
-    plugin.init = function() {
+    sf.init = function() {
 
-      plugin.settings = $.extend({}, defaults, options);
-      plugin.currentValue = $input.val();
-      plugin.onChangeInterval = {};
+      sf.settings = $.extend({}, defaults, options);
+      sf.currentValue = $input.val();
+      sf.onChangeInterval = {};
 
       // Remove autocomplete attribute to prevent native suggestions
-      $input.attr('autocomplete', 'off');
-      // Fix android and iOS annoyances that conflict with proper names
-      if($('html').hasClass('touch')) {
-        $input.attr( {'spellcheck': 'false', 'autocorrect': 'off','autocapitalize': 'off'} );
-      }
+      // Prevent iOS/Android/Win10 annoyances that alter search terms
+      var attr = { autocomplete: 'off', spellcheck: 'false', autocorrect: 'off', autocapitalize: 'off' };
+      $input.attr(attr);
 
       // React to Input on the Input
       $input
-          .on('keyup', function (e) { plugin.onKeyUp(e); })
-          .on('keydown', function (e) { plugin.onKeyDown(e); })
-          .on('blur', function () { if( plugin.currentValue !== $input.val() ) {  plugin.doCallback(); } })
-          .on('change', function () { if( plugin.currentValue !== $input.val() ) {  plugin.doCallback(); } })
+          .on('keyup', function (e) { sf.onKeyUp(e); })
+          .on('keydown', function (e) { sf.onKeyDown(e); })
+          .on('blur', function () { if( sf.currentValue !== $input.val() ) {  sf.doCallback(); } })
+          .on('change', function () { if( sf.currentValue !== $input.val() ) {  sf.doCallback(); } })
       ;
     };
 
-    plugin.onKeyDown = function(e) {
+    sf.onKeyDown = function(e) {
       var keyPressed = e.which;
 
       switch (keyPressed) {
@@ -59,10 +57,10 @@
           $input.val('').trigger('change');
           return;
         case keys.TAB:
-          if( plugin.currentValue !== $input.val() ) {  plugin.doCallback(); }
+          if( sf.currentValue !== $input.val() ) {  sf.doCallback(); }
           return;
         case keys.RETURN:
-          if( plugin.currentValue !== $input.val() ) {  plugin.doCallback(); }
+          if( sf.currentValue !== $input.val() ) {  sf.doCallback(); }
           break;
         default:
           return;
@@ -78,28 +76,28 @@
      *
      * @param e       The event that triggered this.
      */
-    plugin.onKeyUp = function(e) {
+    sf.onKeyUp = function(e) {
       var keyPressed = e.which;
 
       // We don't want to do anything for special keys
-      if(plugin.isSpecialKey(keyPressed)) { return; }
+      if(sf.isSpecialKey(keyPressed)) { return; }
 
-      clearInterval(plugin.onChangeInterval);
+      clearInterval(sf.onChangeInterval);
 
       // If any other key, perform the lookup
-      if (plugin.currentValue !== $input.val()) {
-        if (plugin.settings.deferRequestBy > 0) {
+      if (sf.currentValue !== $input.val()) {
+        if (sf.settings.deferRequestBy > 0) {
           // Defer lookup in case when value changes very quickly:
-          plugin.onChangeInterval = setInterval(function () {
-            plugin.doCallback();
-          }, plugin.settings.deferRequestBy);
+          sf.onChangeInterval = setInterval(function () {
+            sf.doCallback();
+          }, sf.settings.deferRequestBy);
         } else {
-          plugin.doCallback();
+          sf.doCallback();
         }
       }
     };
 
-    plugin.isSpecialKey = function(keyPressed) {
+    sf.isSpecialKey = function(keyPressed) {
       var retval = false;
       $.each( keys, function( key, value ) {
         retval = retval || (value === keyPressed);
@@ -108,33 +106,31 @@
       return retval;
     };
 
-    plugin.doCallback = function() {
-      clearInterval(plugin.onChangeInterval);
-      plugin.currentValue = $input.val();
-      if(plugin.currentValue.length >= plugin.settings.minCharacter) {
-        clearInterval(plugin.onChangeInterval);
-        plugin.settings.search(plugin.currentValue);
+    sf.doCallback = function() {
+      clearInterval(sf.onChangeInterval);
+      sf.currentValue = $input.val();
+      if(sf.currentValue.length >= sf.settings.minCharacter) {
+        clearInterval(sf.onChangeInterval);
+        sf.settings.search(sf.currentValue);
 
-      } else if(plugin.currentValue.length === 0) {
-        plugin.settings.clear();
+      } else if(sf.currentValue.length === 0) {
+        sf.settings.clear();
       }
     };
 
-    // call the "constructor" method
-    plugin.init();
+    sf.init();
 
   };
 
   /**
-   * Add Plugin to jQuery.fn object, attach plugin to each element.
-   * @param options
-   * @returns {*}
+   * @param   {object} options
+   * @returns {jQuery}
    */
   $.fn.searchField = function(options) {
     return this.each(function() {
       if (undefined === $(this).data('search-field')) {
-        var plugin = new $.searchField(this, options);
-        $(this).data('search-field', plugin);
+        var sf = new $.searchField(this, options);
+        $(this).data('search-field', sf);
       }
     });
   }

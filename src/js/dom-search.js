@@ -5,15 +5,16 @@
  */
 jQuery.fn.extend( {
   domSearch: function ( sel, value, callback ) {
-    var plugin = this;
-    plugin.value = value;
-    plugin.settings = { minCharacter: 2 };
+    var ds = this;
 
-    plugin.hasSearch = function(elem) {
+    ds.value    = value;
+    ds.settings = { minCharacter: 2 };
+
+    ds.hasSearch = function(elem) {
       var retval = false;
       $(elem).contents().each(function() {
-        var text = plugin.getText(this);
-        if(text && text.indexOf(plugin.value.toLowerCase()) >= 0) {
+        var text = ds.getText(this);
+        if(text && text.indexOf(ds.value.toLowerCase()) >= 0) {
           retval = true;
         }
       });
@@ -21,13 +22,13 @@ jQuery.fn.extend( {
       return retval;
     };
 
-    plugin.getText = function(elem) {
+    ds.getText = function(elem) {
       var text = (elem.textContent || elem.innerText || $(elem).text() || "").toLowerCase();
-      return (text.length >= plugin.settings.minCharacter) ? text : null;
+      return (text.length >= ds.settings.minCharacter) ? text : null;
     };
 
     $(sel).each(function() {
-      callback(this,plugin.hasSearch(this));
+      callback(this,ds.hasSearch(this));
     });
   }
 } );
