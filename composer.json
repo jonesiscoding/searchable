@@ -1,5 +1,5 @@
 {
-  "name": "exactquery/searchable",
+  "name": "deviscoding/searchable",
   "description": "jQuery plugins for managing search fields and callbacks, as well as searching DOM elements.",
   "keywords": [
       "jquery",
@@ -10,12 +10,15 @@
       "search",
       "find"
   ],
-  "homepage": "https://www.github.com/exactquery/searchable",
-  "version": "2.0",
+  "replace": {
+    "exactquery/searchable": "^2.0"
+  },
+  "homepage": "https://www.github.com/jonesiscoding/searchable",
+  "version": "2.0.1",
   "authors": [
       {
           "name": "Aaron M Jones",
-          "homepage": "http://www.jonesiscoding.com"
+          "homepage": "http://www.deviscoding.com"
       }
   ],
   "license": "MIT"
