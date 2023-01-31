@@ -1,20 +1,17 @@
 {
   "name": "deviscoding/searchable",
-  "description": "jQuery plugins for managing search fields and callbacks, as well as searching DOM elements.",
+  "description": "Vanilla JS classes for managing search fields, as well as searching DOM elements and JSON sources.",
   "keywords": [
-      "jquery",
       "search",
       "callback",
       "javascript",
       "dom",
+      "ajax",
       "search",
       "find"
   ],
-  "replace": {
-    "exactquery/searchable": "^2.0"
-  },
   "homepage": "https://www.github.com/jonesiscoding/searchable",
-  "version": "2.0.1",
+  "version": "3.0",
   "authors": [
       {
           "name": "Aaron M Jones",
