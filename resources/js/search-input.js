@@ -5,62 +5,78 @@
  */
 ;(function($) {
 
-  $.searchField = function(el, options) {
+  class SearchInput {
 
-    var defaults = {
-      minCharacter: 3,
-      deferRequestBy: 500,
-      search: function(search) {},
-      clear: function() {}
+    /**
+     * @typedef CallbackConfig
+     * @param {function(*)} search
+     * @param {function()} clear
+     */
+
+    /** @type HTMLInputElement */
+    el;
+    /** @type {CallbackConfig|object} */
+    callbacks = { search: search => {}, clear: () => {} }
+    /** @type string */
+    currentValue;
+    /** @type int */
+    deferRequestBy = 500;
+    /** @type int */
+    minCharacter = 3;
+    /** @type number */
+    onChangeInterval;
+
+    /** @type {{*: string, ESC: string, TAB: string, LEFT: string, ENTER: string, RIGHT: string, UP: string}} */
+    static keys = {
+      ESC:   'Escape',
+      TAB:   'Tab',
+      ENTER: 'Enter',
+      LEFT:  'ArrowLeft',
+      UP:    'ArrowUp',
+      RIGHT: 'ArrowRight',
+      DOWN:  'ArrowDown'
     };
 
-    var keys = {
-      ESC:    27,
-      TAB:    9,
-      RETURN: 13,
-      LEFT:   37,
-      UP:     38,
-      RIGHT:  39,
-      DOWN:   40
-    };
+    constructor( el, options ) {
 
-    var sf     = this;
-    var $input = $(el);
+      let si = this;
 
-    sf.settings = {};
-
-    sf.init = function() {
-
-      sf.settings = $.extend({}, defaults, options);
-      sf.currentValue = $input.val();
-      sf.onChangeInterval = {};
+      si.el = el;
+      si.deferRequestBy = options.deferRequestBy || si.deferRequestBy;
+      si.minCharacter = options.minCharacter || si.minCharacter;
+      si.callbacks.search = options.search || si.callbacks.search;
+      si.callbacks.clear = options.clear || si.callbacks.clear;
 
       // Remove autocomplete attribute to prevent native suggestions
       // Prevent iOS/Android/Win10 annoyances that alter search terms
-      var attr = { autocomplete: 'off', spellcheck: 'false', autocorrect: 'off', autocapitalize: 'off' };
-      $input.attr(attr);
+      let attr = { autocomplete: 'off', spellcheck: 'false', autocorrect: 'off', autocapitalize: 'off' };
+      for (let key in attr) {
+        si.el.setAttribute(key, attr[key]);
+      }
 
       // React to Input on the Input
-      $input
-          .on('keyup', function (e) { sf.onKeyUp(e); })
-          .on('keydown', function (e) { sf.onKeyDown(e); })
-          .on('blur', function () { if( sf.currentValue !== $input.val() ) {  sf.doCallback(); } })
-          .on('change', function () { if( sf.currentValue !== $input.val() ) {  sf.doCallback(); } })
-      ;
+      el.addEventListener('keyup', e => si.onKeyUp(e));
+      el.addEventListener('keydown', e => si.onKeyDown(e));
+      el.addEventListener('blur', e => { if(si.currentValue !== el.value) { si.doCallback(); }});
     };
 
-    sf.onKeyDown = function(e) {
-      var keyPressed = e.which;
+    get id() {
+      return this.el.id;
+    }
 
-      switch (keyPressed) {
-        case keys.ESC:
-          $input.val('').trigger('change');
+    /**
+     * @param {KeyboardEvent} e
+     */
+    onKeyDown(e) {
+      switch (e.key) {
+        case SearchInput.keys.ESC:
+          this.el.dispatchEvent( 'change' );
           return;
-        case keys.TAB:
-          if( sf.currentValue !== $input.val() ) {  sf.doCallback(); }
+        case SearchInput.keys.TAB:
+          if( this.currentValue !== this.el.value ) {  this.callback(); }
           return;
-        case keys.RETURN:
-          if( sf.currentValue !== $input.val() ) {  sf.doCallback(); }
+        case SearchInput.keys.ENTER:
+          if( this.currentValue !== this.el.value ) {  this.callback(); }
           break;
         default:
           return;
@@ -72,55 +88,50 @@
     };
 
     /**
-     * Called when a key is released while the search box is in focus.
-     *
-     * @param e       The event that triggered this.
+     * @param {KeyboardEvent} e
      */
-    sf.onKeyUp = function(e) {
-      var keyPressed = e.which;
+    onKeyUp(e) {
+      let si = this;
 
       // We don't want to do anything for special keys
-      if(sf.isSpecialKey(keyPressed)) { return; }
+      if(si.isSpecialKey(e.key)) { return; }
 
-      clearInterval(sf.onChangeInterval);
+      clearInterval(si.onChangeInterval);
 
       // If any other key, perform the lookup
-      if (sf.currentValue !== $input.val()) {
-        if (sf.settings.deferRequestBy > 0) {
+      if (si.currentValue !== si.el.value) {
+        if (si.deferRequestBy > 0) {
           // Defer lookup in case when value changes very quickly:
-          sf.onChangeInterval = setInterval(function () {
-            sf.doCallback();
-          }, sf.settings.deferRequestBy);
+          si.onChangeInterval = setInterval(() => si.doCallback(), this.deferRequestBy);
         } else {
-          sf.doCallback();
+          si.doCallback();
         }
       }
     };
 
-    sf.isSpecialKey = function(keyPressed) {
-      var retval = false;
-      $.each( keys, function( key, value ) {
-        retval = retval || (value === keyPressed);
-      });
-
-      return retval;
-    };
-
-    sf.doCallback = function() {
-      clearInterval(sf.onChangeInterval);
-      sf.currentValue = $input.val();
-      if(sf.currentValue.length >= sf.settings.minCharacter) {
-        clearInterval(sf.onChangeInterval);
-        sf.settings.search(sf.currentValue);
-
-      } else if(sf.currentValue.length === 0) {
-        sf.settings.clear();
+    /**
+     * @param {string} keyPressed
+     * @returns {boolean}
+     */
+    isSpecialKey(keyPressed) {
+      for(let key in SearchInput.keys) {
+        if ( key === keyPressed ) {
+          return true;
+        }
       }
     };
 
-    sf.init();
-
-  };
+    doCallback() {
+      clearInterval(this.onChangeInterval);
+      this.currentValue = this.el.value;
+      if(this.currentValue.length >= this.minCharacter) {
+        clearInterval(this.onChangeInterval);
+        this.callbacks.search.apply(this, [this.currentValue]);
+      } else if(this.currentValue.length === 0) {
+        this.callbacks.clear.apply(this);
+      }
+    };
+  }
 
   /**
    * @param   {object} options
@@ -129,7 +140,7 @@
   $.fn.searchField = function(options) {
     return this.each(function() {
       if (undefined === $(this).data('search-field')) {
-        var sf = new $.searchField(this, options);
+        let sf = new SearchInput(this, options);
         $(this).data('search-field', sf);
       }
     });
