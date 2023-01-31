@@ -3,7 +3,7 @@ Vanilla JS classes for search field callbacks, searching dom elements, and ajax 
 
 ## SearchInput Usage
 
-Normally, this class is used with either `DomSearch` or `AjaxSearch`, however it may also be used independently using the syntax given below.
+Normally, this class is used with either `DomSearch` or `AjaxSearch`, however it may also be used independently using the syntax given below:
 
     let el = document.getElementById('<id of search input>');
     let searchCallback = function(query) { console.log('you searched for' +  query); };
@@ -31,7 +31,7 @@ This Javascript would use the class to filter rows based on the entry into the `
 
 ## AjaxSearch Usage
 
-The code below is an example of how the `AjaxSearch` class could be used 
+The code below is an example of how the `AjaxSearch` class could be used:
 
     let si = document.getElementById('searchWithMe');
     let fnResults = function(data) { <your code to do something with the result data> };
