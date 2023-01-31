@@ -1,34 +1,49 @@
+
 /**
- * Searches the given selector for the given text value, then performs the given callback.
- *
- * @returns {jQuery}
+ * Searches the given selectors for the given text value, then performs the given 'result' callback on each selector.
  */
-jQuery.fn.extend( {
-  domSearch: function ( sel, value, callback ) {
-    var ds = this;
+class DomSearch extends SearchInput {
 
-    ds.value    = value;
-    ds.settings = { minCharacter: 2 };
+  /** @type {NodeListOf<HTMLElement>} */
+  targets;
 
-    ds.hasSearch = function(elem) {
-      var retval = false;
-      $(elem).contents().each(function() {
-        var text = ds.getText(this);
-        if(text && text.indexOf(ds.value.toLowerCase()) >= 0) {
-          retval = true;
-        }
-      });
+  /**
+   * @param {HTMLElement} el
+   * @param {{ target: string, clear: function, result: function }} options
+   */
+  constructor( el, options ) {
+    super( el, options );
 
-      return retval;
-    };
+    this.targets = document.querySelectorAll(options.target);
+    this.callbacks.search = this.search;
+    this.callbacks.clear = options.clear || this.callbacks.clear;
+    this.callbacks.result =  options.result || function(node, found) {};
+  };
 
-    ds.getText = function(elem) {
-      var text = (elem.textContent || elem.innerText || $(elem).text() || "").toLowerCase();
-      return (text.length >= ds.settings.minCharacter) ? text : null;
-    };
-
-    $(sel).each(function() {
-      callback(this,ds.hasSearch(this));
+  /**
+   * Searches each node that matches target selector given at instatitation for the given query string and runs the
+   * result callback given at instantiation indicating whether the
+   *
+   * @param {string} query
+   */
+  search(query) {
+    let ds = this;
+    let q = query.toLowerCase();
+    this.targets.forEach(function(node) {
+      let text = ds.text(node);
+      let found = text && text.indexOf(q) >= 0;
+      // noinspection JSUnresolvedVariable
+      ds.callbacks.result.apply(node, [found])
     });
   }
-} );
+
+  /**
+   * Retrieves all text in the given HtmlElement
+   * @param elem
+   * @returns {string|null}
+   */
+  text(elem) {
+    let text = (elem.textContent || elem.innerText || "").toLowerCase();
+    return (text.length >= this.minCharacter) ? text : null;
+  };
+}
